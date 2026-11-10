@@ -26,7 +26,10 @@ import (
 
 var nssfContext = NSSFContext{}
 
-const port int = 29510
+const (
+	port           int = 29510
+	defaultNrfHost     = "127.0.0.1"
+)
 
 const (
 	nsSelectionAPIFullVersion        = "2.3.0-alpha.3"
@@ -51,7 +54,10 @@ func init() {
 	}
 	nssfContext.NfService = initNfService(serviceName)
 
-	nssfContext.NrfUri = fmt.Sprintf("%s://%s:%d", models.URISCHEME_HTTPS, nssfContext.RegisterIPv4, port)
+	// Until a configuration is loaded the NRF is assumed on the local host, as in
+	// InitNssfContext when nrfUri is empty. RegisterIPv4 is the NSSF's own
+	// address and says nothing about where the NRF is.
+	nssfContext.NrfUri = fmt.Sprintf("%s://%s:%d", models.URISCHEME_HTTPS, defaultNrfHost, port)
 }
 
 type NSSFContext struct {
@@ -108,7 +114,7 @@ func InitNssfContext() {
 		nssfContext.NrfUri = nssfConfig.Configuration.NrfUri
 	} else {
 		logger.InitLog.Warnln("NRF Uri is empty. Using localhost as NRF IPv4 address")
-		nssfContext.NrfUri = fmt.Sprintf("%s://%s:%d", nssfContext.UriScheme, "127.0.0.1", port)
+		nssfContext.NrfUri = fmt.Sprintf("%s://%s:%d", nssfContext.UriScheme, defaultNrfHost, port)
 	}
 }
 
