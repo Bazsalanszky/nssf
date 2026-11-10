@@ -16,6 +16,7 @@ import (
 	"github.com/omec-project/openapi/v2"
 	"github.com/omec-project/openapi/v2/Nnrf_NFManagement"
 	"github.com/omec-project/openapi/v2/models"
+	openapiutils "github.com/omec-project/openapi/v2/utils"
 )
 
 const errServerNoResponse = "no response from server"
@@ -41,7 +42,11 @@ func getNfProfile(currentNssfContext *nssfContext.NSSFContext, plmnConfig []mode
 		copy(plmnCopy, plmnConfig)
 		profile.SetPlmnList(plmnCopy)
 	}
-	profile.SetIpv4Addresses([]string{currentNssfContext.RegisterIPv4})
+	addrs := currentNssfContext.SbiAddrs()
+	if addrs.Empty() {
+		return profile, openapi.ReportError("nssf register address is empty. NF profile cannot be built")
+	}
+	openapiutils.SetNFProfileAddresses(&profile, addrs.FQDN, addrs.IPv4, addrs.IPv6)
 	services := map[string]models.NFService{}
 	serviceList := []models.NFService{}
 	for _, nfService := range currentNssfContext.NfService {
