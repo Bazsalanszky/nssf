@@ -54,11 +54,23 @@ type Configuration struct {
 type Sbi struct {
 	Scheme models.UriScheme `yaml:"scheme"`
 	TLS    *TLS             `yaml:"tls"`
-	// Currently only support IPv4 and thus `Ipv4Addr` field shall not be empty
-	RegisterIPv4 string `yaml:"registerIPv4,omitempty"` // IP that is registered at NRF.
-	// IPv6Addr string `yaml:"ipv6Addr,omitempty"`
-	BindingIPv4 string `yaml:"bindingIPv4,omitempty"` // IP used to run the server in the node.
-	Port        int    `yaml:"port"`
+	// RegisterIPv4 and RegisterIPv6 are what the NSSF registers at the NRF and
+	// uses in its own URIs. Each holds an IPv4 address, an IPv6 address, a host
+	// name, a comma-separated list of those, or the name of an environment
+	// variable holding one (POD_IP, POD_IPS). Every value goes to the profile
+	// field of its own kind, so an IPv6 POD_IP under registerIPv4 is registered
+	// in ipv6Addresses.
+	RegisterIPv4 string `yaml:"registerIPv4,omitempty"`
+	RegisterIPv6 string `yaml:"registerIPv6,omitempty"`
+	// BindingAddr is the SBI listen address, of either family, or the name of
+	// an environment variable holding it. It wins over BindingIPv4, its legacy
+	// alias. The default is 0.0.0.0, which accepts IPv4 and IPv6.
+	BindingAddr string `yaml:"bindingAddr,omitempty"`
+	BindingIPv4 string `yaml:"bindingIPv4,omitempty"`
+	// PreferredFamily (IPv4, the default, or IPv6) picks the address of the
+	// NSSF's own URIs when it registers both families and no host name.
+	PreferredFamily string `yaml:"preferredFamily,omitempty"`
+	Port            int    `yaml:"port"`
 }
 
 type TLS struct {

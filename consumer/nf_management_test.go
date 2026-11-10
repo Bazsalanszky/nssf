@@ -12,19 +12,22 @@ import (
 
 const testNfId = "test-id"
 
+// A context without a register address used to give ipv4Addresses: [""],
+// which is not an Ipv4Addr and leaves the profile without any address
+// (TS 29.510 requires fqdn, ipv4Addresses or ipv6Addresses). InitNssfContext
+// always sets an address, so only a hand-built context gets here; it is now
+// an error.
 func TestBuildNFProfile_EmptyContext(t *testing.T) {
 	ctx := context.NSSFContext{NfId: testNfId}
 
 	profile, err := getNfProfile(&ctx, []models.PlmnId{})
-	if err != nil {
-		t.Errorf("Error building NFProfile: %v", err)
+	if err == nil {
+		t.Errorf("getNfProfile() built a profile without an address: %v", profile)
 	}
 
-	if profile.GetNfInstanceId() != testNfId ||
-		profile.GetNfType() != models.NFTYPE_NSSF ||
-		profile.GetNfStatus() != models.NFSTATUS_REGISTERED ||
-		len(profile.GetPlmnList()) != 0 ||
-		profile.GetIpv4Addresses()[0] != ctx.RegisterIPv4 ||
+	if len(profile.GetIpv4Addresses()) != 0 ||
+		len(profile.GetIpv6Addresses()) != 0 ||
+		profile.GetFqdn() != "" ||
 		profile.GetNfServices() != nil {
 		t.Errorf("Unexpected NfProfile built: %v", profile)
 	}
